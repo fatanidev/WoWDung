@@ -2,12 +2,16 @@
 
 (require srfi/1)
 (require srfi/13)
+;; Defining items that will be accessible throughout the game
+(define objects '((1 "a silver dagger")
+                  (2 "a silver sword")
+                  (1 "a gold coin")))
 
-(define objects '((1 "a Silver Dagger")
-                  (7 "a Silver Sword")
-                  (9 "a Holy Mace")
-                  (1 "a Silver Coin")))
+(define monsters '((1 "Wolf")
+                  (2 "Goblin")
+                  (1 "Lion")))
 
+;; Different areas for the user to explore
 (define descriptions '(
                        ;; start of the game
                        (1 "You are in the Elwen Forest.")
@@ -17,8 +21,8 @@
                        (4 "You are in the Prisoner's Cell.")
                        (5 "You are in the Execution Room")
                        ;; east city (accessed through Elwen Forest)
-                       (6 "You are in EastFall.")
-                       (7 "You are in EastFall's Camp")
+                       (6 "You are in a EastFall.")
+                       (7 "You are in a EastFall's Camp")
                        (8 "You are at the Riverbank of EastFalls.")
                        ;; Horde camp
                        (9 "Now you are at LightShore")
@@ -26,33 +30,36 @@
                        (11 "You are at Ragnar Barracks")
                        
                        ;; final boss
-                       (12 "You are in the Main Room .")))
+                       (12 "You See Akber Ali, King of Ragnar.")))
 
+;; commands and their decision tables that are avaliable to the users
 (define look '(((directions) look) ((look) look) ((examine room) look)))
 (define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 (define pick '(((get) pick) ((pickup) pick) ((pick) pick)))
 (define put '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
-(define inventory '(((inventory) inventory) ((bag) inventory)))
+(define inventory '(((inventory) inventory) ((bag)  inventory)))
 (define actions `(,@look ,@quit ,@pick ,@put ,@inventory))
 
-(define decisiontable `((1 ((Storm City) 2) (( Eastfall) 6) ,@actions)
+;; decision tables for the areas
+(define decisiontable `((1 ((north) 2) ((north west) 4) (( south east) 6) ,@actions)
                         
-                        (2 ((Elwen Forest) 1) ((Storm Dungeon) 3)  ,@actions)
-                        (3 ((Storm City) 2) ((Prisoners Cell) 4) ((Execution Room) 5) ,@actions)
-                        (4 ((Storm Dungeon) 3)  ,@actions)
-                        (5 ((Storm Dungeon) 3) ,@actions)
+                        (2 ((south) 1) ((north east) 3)  ,@actions)
+                        (3 ((south) 2) ((east) 4) ((north) 5) ,@actions)
+                        (4 ((west) 3)  ,@actions)
+                        (5 ((south) 3) ,@actions)
                         
-                        (6 ((Storm City) 2) ((EastFalls Camp) 7) ,@actions)
-                        (7 ((EastFall) 6) ((RiverBank of EastFalls) 8) ,@actions)
-                        (8 ((Eastfalls Camp) 7) ((Light Shore) 9) ,@actions)
+                        (6 ((north west) 2) ((east) 7) ,@actions)
+                        (7 ((west) 6) ((south east) 8) ,@actions)
+                        (8 ((north west) 7) ((south west) 9) ,@actions)
                         
-                        (9 ((Riverbank of EastFalls) 8) ((Fel Cave) 10) ((Ragnar Barracks) 11) ,@actions)
-                        (10 ((Light Shore) 9) ,@actions)
-                        (11 ((Light Shore) 9) ((Boss Room) 12) ,@actions)
-                        (12 ((Light Shore 9) ,@actions))))
+                        (9 ((north east) 8) ((south) 10) ((west) 11) ,@actions)
+                        (10 ((north) 9) ,@actions)
+                        (11 ((east) 9) ((north east) 11) ,@actions)
+                        (12 ,@actions)))
 
 (define objectdb (make-hash))
 (define inventorydb (make-hash))
+(define monsterdb (make-hash))
 
 (define (add-object db id object)
   (if (hash-has-key? db id)
@@ -65,14 +72,32 @@
    (lambda (r) 
      (add-object db (first r) (second r))) objects))
 
+
+
 (add-objects objectdb)
+
+;; monster db 
+(define (add-monster db id monster)
+  (if (hash-has-key? db id)
+      (let ((record (hash-ref db id)))
+        (hash-set! db id (cons monster record)))
+      (hash-set! db id (cons monster empty))))
+
+(define (add-monsters db)
+  (for-each
+   (lambda (r) 
+     (add-monster db (first r) (second r))) monsters))
+
+
+
+(add-monsters monsterdb)
 
 (define (display-objects db id)
   (when (hash-has-key? db id)
     (let* ((record (hash-ref db id))
            (output (string-join record " and ")))
       (when (not (equal? output ""))
-        (if (eq? id 'bag)
+        (if (eq? id 'npcc)
             (printf "You are carrying ~a.\n" output)
             (printf "You can see ~a.\n" output))))))
 
@@ -99,7 +124,31 @@
              (printf "Removed ~a from your bag.\n" (first item))
              (add-object objectdb id (first item))
              (hash-set! db 'bag result))))))
-             
+
+;;Monster Db Functions
+
+(define (display-monsters db id)
+  (when (hash-has-key? db id)
+    (let* ((record (hash-ref db id))
+           (output (string-join record " and ")))
+      (when (not (equal? output ""))
+        (if (eq? id 'npc)
+            (printf "You are carrying ~a.\n" output)
+            (printf "You can see ~a.\n" output))))))
+
+(define (remove-monster-from-room db id str)
+  (when (hash-has-key? db id)
+    (let* ((record (hash-ref db id))
+           (result (remove (lambda (x) (string-suffix-ci? str x)) record))
+           (npcc (lset-difference equal? record result)))
+      (cond ((null? npcc) 
+             (printf "I don't see that npc in the room!\n"))
+            (else
+             (printf "Added ~a to your bag.\n" (first npcc))
+             (add-object monsterdb 'npc (first npcc))
+             (hash-set! db id result))))))
+
+            
 (define (pick-item id input)
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-room objectdb id item)))
@@ -172,7 +221,9 @@
   (let loop ((id initial-id) (description #t))
     (when description
       (display-description id)
+      (display-monsters monsterdb id)
       (display-objects objectdb id))
+    
     (printf "> ")
     (let* ((input (read-line))
            (string-tokens (string-tokenize input))
