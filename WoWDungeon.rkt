@@ -36,9 +36,10 @@
 (define look '(((directions) look) ((look) look) ((examine room) look)))
 (define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 (define pick '(((get) pick) ((pickup) pick) ((pick) pick)))
+(define fight '(((fight) fight) ((kill) fight) ((destroy) fight)))
 (define put '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
 (define inventory '(((inventory) inventory) ((bag)  inventory)))
-(define actions `(,@look ,@quit ,@pick ,@put ,@inventory))
+(define actions `(,@look ,@quit ,@pick ,@fight ,@put ,@inventory))
 
 ;; decision tables for the areas
 (define decisiontable `((1 ((north) 2) ((north west) 4) (( south east) 6) ,@actions)
@@ -152,6 +153,9 @@
 (define (pick-item id input)
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-room objectdb id item)))
+(define (kill-monster id input)
+  (let ((item (string-join (cdr (string-split input)))))
+    (remove-monster-from-room objectdb id item)))
 
 (define (put-item id input)
   (let ((item (string-join (cdr (string-split input)))))
@@ -239,6 +243,9 @@
                (loop id #t))
               ((eq? response 'pick)
                (pick-item id input)
+               (loop id #f))
+              ((eq? response 'fight)
+               (kill-monster id input)
                (loop id #f))
               ((eq? response 'drop)
                (put-item id input)
