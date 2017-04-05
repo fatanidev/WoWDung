@@ -3,15 +3,30 @@
 (require srfi/1)
 (require srfi/13)
 
-(define objects '((1 "a dagger")
-                  (2 "coin")))
+(define objects '((1 "a Silver Dagger")
+                  (7 "a Silver Sword")
+                  (9 "a Holy Mace")
+                  (1 "a Silver Coin")))
 
 (define descriptions '(
                        ;; start of the game
                        (1 "You are in the Elwen Forest.")
                        ;; first city
                        (2 "You are in the Storm City.")
-                       (3 "You are in the Storm Dungeon.")))
+                       (3 "You are in the Storm Dungeon.")
+                       (4 "You are in the Prisoner's Cell.")
+                       (5 "You are in the Execution Room")
+                       ;; east city (accessed through Elwen Forest)
+                       (6 "You are in EastFall.")
+                       (7 "You are in EastFall's Camp")
+                       (8 "You are at the Riverbank of EastFalls.")
+                       ;; Horde camp
+                       (9 "Now you are at LightShore")
+                       (10 "You are at a Fel Cave")
+                       (11 "You are at Ragnar Barracks")
+                       
+                       ;; final boss
+                       (12 "You are in the Main Room .")))
 
 (define look '(((directions) look) ((look) look) ((examine room) look)))
 (define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
@@ -20,9 +35,21 @@
 (define inventory '(((inventory) inventory) ((bag) inventory)))
 (define actions `(,@look ,@quit ,@pick ,@put ,@inventory))
 
-(define decisiontable `((1 ((north) 2) ((north west) 3) ,@actions)
-                        (2 ((south) 1) ,@actions)
-                        (3 ,@actions)))
+(define decisiontable `((1 ((Storm City) 2) (( Eastfall) 6) ,@actions)
+                        
+                        (2 ((Elwen Forest) 1) ((Storm Dungeon) 3)  ,@actions)
+                        (3 ((Storm City) 2) ((Prisoners Cell) 4) ((Execution Room) 5) ,@actions)
+                        (4 ((Storm Dungeon) 3)  ,@actions)
+                        (5 ((Storm Dungeon) 3) ,@actions)
+                        
+                        (6 ((Storm City) 2) ((EastFalls Camp) 7) ,@actions)
+                        (7 ((EastFall) 6) ((RiverBank of EastFalls) 8) ,@actions)
+                        (8 ((Eastfalls Camp) 7) ((Light Shore) 9) ,@actions)
+                        
+                        (9 ((Riverbank of EastFalls) 8) ((Fel Cave) 10) ((Ragnar Barracks) 11) ,@actions)
+                        (10 ((Light Shore) 9) ,@actions)
+                        (11 ((Light Shore) 9) ((Boss Room) 12) ,@actions)
+                        (12 ((Light Shore 9) ,@actions))))
 
 (define objectdb (make-hash))
 (define inventorydb (make-hash))
