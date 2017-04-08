@@ -39,7 +39,8 @@
 (define fight '(((fight) fight) ((kill) fight) ((destroy) fight)))
 (define put '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
 (define inventory '(((inventory) inventory) ((bag)  inventory)))
-(define actions `(,@look ,@quit ,@pick ,@fight ,@put ,@inventory))
+(define status '(((killed) status) ((deaths)  status)))
+(define actions `(,@look ,@quit ,@pick ,@fight ,@put ,@inventory ,@status))
 
 ;; decision tables for the areas
 (define decisiontable `((1 ((north) 2) ((north west) 4) (( south east) 6) ,@actions)
@@ -153,6 +154,7 @@
 (define (pick-item id input)
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-room objectdb id item)))
+    
 (define (kill-monster id input)
   (let ((item (string-join (cdr (string-split input)))))
     (remove-monster-from-room objectdb id item)))
@@ -163,6 +165,9 @@
 
 (define (display-inventory)
   (display-objects inventorydb 'bag))
+  
+  (define (display-kills)
+   (display-monsters monsterdb 'npc))
 
 (define (slist->string l)
   (string-join (map symbol->string l)))
@@ -252,7 +257,10 @@
                (loop id #f))
               ((eq? response 'inventory)
                (display-inventory)
-               (loop id #f))              
+               (loop id #f)) 
+              ((eq? response 'status)
+               (display-kills)
+               (loop id #f))  
               ((eq? response 'quit)
                (printf "So Long, and Thanks for All the Fish...\n")
                (exit)))))))
