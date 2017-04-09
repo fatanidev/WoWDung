@@ -100,14 +100,19 @@
 
 (add-monsters monsterdb)
 
-(define (display-objects db id)
+(define (display-objects db id type)
   (when (hash-has-key? db id)
     (let* ((record (hash-ref db id))
            (output (string-join record " and ")))
       (when (not (equal? output ""))
-        (if (eq? id 'npcc)
+        (cond ((equal? type 1)
+        (if (eq? id 'bag)
             (printf "You are carrying ~a.\n" output)
-            (printf "You can see ~a.\n" output))))))
+            (printf "You can see ~a.\n" output)))
+              ((equal? type 2)
+         (if(eq? id 'npc)
+            (printf "You have killed ~a. \n" output )           
+            (printf "You can see ~a.\n" output))))))))
 
 (define (remove-object-from-room db id str)
   (when (hash-has-key? db id)
@@ -135,14 +140,6 @@
 
 ;;Monster Db Functions
 
-(define (display-monsters db id)
-  (when (hash-has-key? db id)
-    (let* ((record (hash-ref db id))
-           (output (string-join record " and ")))
-      (when (not (equal? output ""))
-        (if (eq? id 'npc)
-            (printf "You are carrying ~a.\n" output)
-            (printf "You can see ~a.\n" output))))))
 
 (define (remove-monster-from-room db id str)
   (when (hash-has-key? db id)
@@ -170,10 +167,10 @@
     (remove-object-from-inventory inventorydb id item)))
 
 (define (display-inventory)
-  (display-objects inventorydb 'bag))
+  (display-objects inventorydb 'bag 1))
   
   (define (display-kills)
-   (display-monsters monsterdb 'npc))
+   (display-objects monsterdb 'npc 2))
 
 (define (slist->string l)
   (string-join (map symbol->string l)))
@@ -236,8 +233,8 @@
   (let loop ((id initial-id) (description #t))
     (when description
       (display-description id)
-      (display-monsters monsterdb id)
-      (display-objects objectdb id))
+      (display-objects monsterdb id 2)      
+      (display-objects objectdb id 1)) 
     
     (printf "> ")
     (let* ((input (string-downcase(read-line)))
