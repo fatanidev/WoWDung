@@ -3,12 +3,15 @@
 (require srfi/1)
 (require srfi/13)
 ;; Defining items that will be accessible throughout the game
-(define objects '((1 "a silver dagger")
-                  (2 "a silver sword")
-                  (1 "a gold coin")))
-
-(define monsters '((1 "Wolf")
-                  (2 "Goblin")
+(define objects '((1 "a Silver Dagger")
+                  (3 "a Silver Sword" )
+                  (9 "a Holy Mace")
+                  (1 "a Silver Coin")))
+                  
+(define monsters '((1 "wolf")
+                  (2 "guard")
+                  (5 "worgen")
+                  (10 "undead")
                   (1 "Lion")))
 
 ;; Different areas for the user to explore
