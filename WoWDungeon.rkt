@@ -17,23 +17,23 @@
 ;; Different areas for the user to explore
 (define descriptions '(
                        ;; start of the game
-                       (1 "You are in the Elwen Forest.")
+                       (1 "############ You are in the Elwen Forest. ############")
                        ;; first city
-                       (2 "You are in the Storm City.")
-                       (3 "You are in the Storm Dungeon.")
-                       (4 "You are in the Prisoner's Cell.")
-                       (5 "You are in the Execution Room")
+                       (2 "############ You are in the Storm City. ############")
+                       (3 "############ You are in the Storm Dungeon ############")
+                       (4 "############ You are in the Prisoner's Cell ############")
+                       (5 "############ You are in the Execution Room ############")
                        ;; east city (accessed through Elwen Forest)
-                       (6 "You are in a EastFall.")
-                       (7 "You are in a EastFall's Camp")
-                       (8 "You are at the Riverbank of EastFalls.")
+                       (6 "############ You are in EastFall ############")
+                       (7 "############ You are in EastFall's Camp ############")
+                       (8 "############ You are at the Riverbank of EastFalls ############")
                        ;; Horde camp
-                       (9 "Now you are at LightShore")
-                       (10 "You are at a Fel Cave")
-                       (11 "You are at Ragnar Barracks")
+                       (9 "############ Now you are at LightShore ############")
+                       (10 "############ You are at a Fel Cave ############")
+                       (11 "############ You are at Ragnar Barracks ############")
                        
                        ;; final boss
-                       (12 "You See Akber Ali, King of Ragnar.")))
+                       (12 "You are in the Boss Room .")))
 
 ;; commands and their decision tables that are avaliable to the users
 (define look '(((directions) look) ((look) look) ((examine room) look)))
