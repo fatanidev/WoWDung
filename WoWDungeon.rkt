@@ -12,7 +12,9 @@
                   (2 "guard")
                   (5 "worgen")
                   (10 "undead")
-                  (1 "Lion")))
+                  (8 "murloc")
+                  (12 "gulda")
+                  (4 "orc")))
 
 ;; Different areas for the user to explore
 (define descriptions '(
