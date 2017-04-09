@@ -240,7 +240,7 @@
       (display-objects objectdb id))
     
     (printf "> ")
-    (let* ((input (read-line))
+    (let* ((input (string-downcase(read-line)))
            (string-tokens (string-tokenize input))
            (tokens (map string->symbol string-tokens)))
       (let ((response (lookup id tokens)))
