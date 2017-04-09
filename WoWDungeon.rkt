@@ -46,21 +46,22 @@
 (define actions `(,@look ,@quit ,@pick ,@fight ,@put ,@inventory ,@status))
 
 ;; decision tables for the areas
-(define decisiontable `((1 ((north) 2) ((north west) 4) (( south east) 6) ,@actions)
+(define decisiontable `((1 ((storm city) 2) (( eastfall) 6) ,@actions)
                         
-                        (2 ((south) 1) ((north east) 3)  ,@actions)
-                        (3 ((south) 2) ((east) 4) ((north) 5) ,@actions)
-                        (4 ((west) 3)  ,@actions)
-                        (5 ((south) 3) ,@actions)
+                        (2 ((elwen forest) 1) ((storm dungeon) 3)  ,@actions)
+                        (3 ((storm city) 2) ((prisoners cell) 4) ((execution room) 5) ,@actions)
+                        (4 ((storm dungeon) 3)  ,@actions)
+                        (5 ((storm dungeon) 3) ,@actions)
                         
-                        (6 ((north west) 2) ((east) 7) ,@actions)
-                        (7 ((west) 6) ((south east) 8) ,@actions)
-                        (8 ((north west) 7) ((south west) 9) ,@actions)
+                        (6 ((storm city) 2) ((eastfalls camp) 7) ,@actions)
+                        (7 ((eastfall) 6) ((riverbank) 8) ,@actions)
+                        (8 ((eastfalls camp) 7) ((light shore) 9) ,@actions)
                         
-                        (9 ((north east) 8) ((south) 10) ((west) 11) ,@actions)
-                        (10 ((north) 9) ,@actions)
-                        (11 ((east) 9) ((north east) 11) ,@actions)
-                        (12 ,@actions)))
+                        (9 ((riverbank) 8) ((fel cave) 10) ((ragnar barracks) 11) ,@actions)
+                        (10 ((light shore) 9) ,@actions)
+                        (11 ((light shore) 9) ((Boss Room) 12) ,@actions)
+                        (12 ((light shore 9) ,@actions))))
+
 
 (define objectdb (make-hash))
 (define inventorydb (make-hash))
