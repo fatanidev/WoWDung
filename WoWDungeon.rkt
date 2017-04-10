@@ -45,15 +45,7 @@
                        (10 "############ You are at a Fel Cave ############")
                        (11 "############ You are at Ragnar Barracks ############")))
 
-;;use the for each function to add evert item in the assoc list to the objectdb using
-;; the add-object function.
-;;(first r ) return the index of objects assoc  list  room
-;;second r) returns the item of the objs assoc list room
-(define (make-running-total)
-               (let ([n 0])
-                 (lambda ()
-                   (set! n (+ n 1))
-                   n)))
+
 
 ;; commands and their decision tables that are avaliable to the users
 (define look '(((directions) look) ((look) look) ((examine room) look)))
@@ -103,7 +95,7 @@
 ;; defining the function to add the object using columns to be able to chose the rooms etc.
 (define (add-objects db type)
        (cond ((equal? type 1)
-           (for-each
+            (for-each
             (lambda (r)
               (add-object db (first r) (second r))) objects))
            ((equal? type 2)
