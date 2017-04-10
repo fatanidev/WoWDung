@@ -100,26 +100,20 @@
         (hash-set! db id (cons object record)))
       (hash-set! db id (cons object empty))))
 ;; defining the function to add the object using columns to be able to chose the rooms etc.
-(define (add-objects db)
-  (for-each
-   (lambda (r) 
-     (add-object db (first r) (second r))) objects))
+(define (add-objects db type)
+       (cond ((equal? type 1)
+           (for-each
+            (lambda (r)
+              (add-object db (first r) (second r))) objects))
+           ((equal? type 2)
+              (for-each
+               (lambda (r)
+                 (add-object db (first r) (second r))) monsters))))
+
 ;; adds the object database
-(add-objects objectdb)
-
-;; monster db same as the object definition but for monsters. 
-(define (add-monster db id monster)
-  (if (hash-has-key? db id)
-      (let ((record (hash-ref db id)))
-        (hash-set! db id (cons monster record)))
-      (hash-set! db id (cons monster empty))))
-
-(define (add-monsters db)
-  (for-each
-   (lambda (r) 
-     (add-monster db (first r) (second r))) monsters))
-;; addst he monsters into the db.
-(add-monsters monsterdb)
+(add-objects objectdb 1)
+;; addst the monsters into the db.
+(add-objects monsterdb 2)
 
 ;; displaying the objects or monsters, type 1 for items and type 2 for monsters
 
@@ -155,8 +149,8 @@
                     ;; type 2 is used for monsters
                     ((equal? type 2)             
                      (printf "~a  Destroyed \n" (first item))
-                     (add-monster monsterdb 'npc (first item))
-                     (add-monster monsterdb 'kills (first item))
+                     (add-object monsterdb 'npc (first item))
+                     (add-object monsterdb 'kills (first item))
                      ;; undead drops an item required to kill final boss
                      (cond ((equal? "undead" (first item))
                             (add-object inventorydb 'bag "Fel Sword")
@@ -169,10 +163,6 @@
                             (printf "No loot from this npc \n")))      
                      (hash-set! db id result))
                     ((equal? type 3)
-                     (printf "Removed ~a from your bag.\n" (first item))
-                     (add-object objectdb id (first item))
-                     (hash-set! db 'bag result))
-                     ((equal? type 4)
                      (printf "Removed ~a from your bag.\n" (first item))
                      (add-object objectdb id (first item))
                      (hash-set! db 'bag result))))))))
@@ -200,8 +190,6 @@
                     (add-object objectdb id "Fel Sword")
                     (printf "The Vendor dropped a Fel Sword \n")
                     (hash-set! db 'bag result))))))))
-
-
             
 (define (pick-item id input)
   (let ((item (string-join (cdr (string-split input)))))
@@ -228,6 +216,7 @@
 (define (vendor-item id input)
   (let ((item (string-join (cdr (string-split input)))))
     (inventory_check inventorydb id "Gold Coin" 0 3)))
+
 ;;displaying kills
 (define (display type)
   (cond ((equal? type 1)
@@ -280,7 +269,6 @@
     (if (zero? n)
       #f
       (list-index (lambda (x) (eq? x n)) list-of-numbers))))
-
 
 (define (lookup id tokens)
   (let* ((record (asso-ref decisiontable id 2))
