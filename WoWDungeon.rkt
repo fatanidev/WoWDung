@@ -166,11 +166,12 @@
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-inventory inventorydb id item)))
 
-(define (display-inventory)
-  (display-objects inventorydb 'bag 1))
-  
-  (define (display-kills)
-   (display-objects monsterdb 'npc 2))
+(define (display type)
+  (cond ((equal? type 1)
+        (display-objects monsterdb 'npc 2))
+        ((equal? type 2)
+        (display-objects inventorydb 'bag 1))))
+
 
 (define (slist->string l)
   (string-join (map symbol->string l)))
@@ -259,11 +260,11 @@
                (put-item id input)
                (loop id #f))
               ((eq? response 'inventory)
-               (display-inventory)
-               (loop id #f)) 
+               (display 2)
+               (loop id #f))
               ((eq? response 'status)
-               (display-kills)
-               (loop id #f))  
+               (display 1)
+               (loop id #f))
               ((eq? response 'quit)
                (printf "So Long, and Thanks for All the Fish...\n")
                (exit)))))))
