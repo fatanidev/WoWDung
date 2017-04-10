@@ -2,12 +2,22 @@
 
 (require srfi/1)
 (require srfi/13)
-;; Defining items that will be accessible throughout the game
+;;############################################################################################
+;;#######         Defining items that will be accessible throughout the game           #######
+;;#######         Defining items that will be accessible throughout the game           #######
+;;#######                                                                              #######
+;;#######                                                                              #######
+;;############################################################################################
+
+;; defines the objects that users can interact with throughout the game
+;; the number represents the room id and the text represents the name of the item
 (define objects '((1 "a Silver Dagger")
                   (3 "a Silver Sword" )
                   (9 "a Holy Mace")
                   (1 "a Silver Coin")))
-                  
+
+;; defines the monsters that users can interact with throughout the game
+;; the number represents the room id and the text represents the name of the monster
 (define monsters '((1 "wolf")
                   (2 "guard")
                   (5 "worgen")
@@ -15,6 +25,7 @@
                   (8 "murloc")
                   (12 "gulda")
                   (4 "orc")))
+
 
 ;; Different areas for the user to explore
 (define descriptions '(
@@ -37,15 +48,22 @@
                        ;; final boss
                        (12 "You are in the Boss Room .")))
 
+(define (make-running-total)
+               (let ([n 0])
+                 (lambda ()
+                   (set! n (+ n 1))
+                   n)))
+
 ;; commands and their decision tables that are avaliable to the users
 (define look '(((directions) look) ((look) look) ((examine room) look)))
 (define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 (define pick '(((get) pick) ((pickup) pick) ((pick) pick)))
-(define fight '(((fight) fight) ((kill) fight) ((destroy) fight)))
 (define put '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
+(define vendor '(((vendor) vendor) ((buy) vendor) ((purchase) vendor)))
 (define inventory '(((inventory) inventory) ((bag)  inventory)))
-(define status '(((killed) status) ((deaths)  status)))
-(define actions `(,@look ,@quit ,@pick ,@fight ,@put ,@inventory ,@status))
+(define fight '(((fight) fight) ((kill)  fight) ((hit)  fight)))
+(define status '(((killed) status)  ((deaths)  status)))
+(define actions `(,@look ,@quit ,@pick ,@put ,@vendor ,@fight ,@status ,@inventory))
 
 ;; decision tables for the areas
 (define decisiontable `((1 ((storm city) 2) (( eastfall) 6) ,@actions)
@@ -64,27 +82,32 @@
                         (11 ((light shore) 9) ((Boss Room) 12) ,@actions)
                         (12 ((light shore 9) ,@actions))))
 
-
+;; defines the database (hash tables)
+;; creates the object database
 (define objectdb (make-hash))
+;; creates the inventory database
 (define inventorydb (make-hash))
+;; creates the monster database
 (define monsterdb (make-hash))
 
+
+
+;;defining how to add objects into the database
+;; this is used to add objects into a room or into the inventory
 (define (add-object db id object)
   (if (hash-has-key? db id)
       (let ((record (hash-ref db id)))
         (hash-set! db id (cons object record)))
       (hash-set! db id (cons object empty))))
-
+;; defining the function to add the object using columns to be able to chose the rooms etc.
 (define (add-objects db)
   (for-each
    (lambda (r) 
      (add-object db (first r) (second r))) objects))
-
-
-
+;; adds the object database
 (add-objects objectdb)
 
-;; monster db 
+;; monster db same as the object definition but for monsters. 
 (define (add-monster db id monster)
   (if (hash-has-key? db id)
       (let ((record (hash-ref db id)))
@@ -95,10 +118,10 @@
   (for-each
    (lambda (r) 
      (add-monster db (first r) (second r))) monsters))
-
-
-
+;; addst he monsters into the db.
 (add-monsters monsterdb)
+
+;; displaying the objects or monsters, type 1 for items and type 2 for monsters
 
 (define (display-objects db id type)
   (when (hash-has-key? db id)
@@ -114,58 +137,98 @@
             (printf "You have killed ~a. \n" output )           
             (printf "You can see ~a.\n" output))))))))
 
-(define (remove-object-from-room db id str)
+;; removes object or monsters from room
+(define (remove-object-from-room db id str type)
   (when (hash-has-key? db id)
     (let* ((record (hash-ref db id))
            (result (remove (lambda (x) (string-suffix-ci? str x)) record))
-           (item (lset-difference equal? record result)))
-      (cond ((null? item) 
-             (printf "I don't see that item in the room!\n"))
-            (else
-             (printf "Added ~a to your bag.\n" (first item))
-             (add-object inventorydb 'bag (first item))
-             (hash-set! db id result))))))
+           (item (lset-difference equal? record result))
+           (rnd (random 10)))
+      (cond ((null? item)
+             (printf "i dont see  in that room \n"))
+             (else
+              ;; type 1 is to add an item into your inventory
+              (cond ((equal? type 1)
+                      (printf "Added ~a to your bag.\n" (first item))
+                      (add-object inventorydb 'bag (first item))
+                      (hash-set! db id result))
+                    ;; type 2 is used for monsters
+                    ((equal? type 2)             
+                     (printf "~a  Destroyed \n" (first item))
+                     (add-monster monsterdb 'npc (first item))
+                     (add-monster monsterdb 'kills (first item))
+                     ;; undead drops an item required to kill final boss
+                     (cond ((equal? "undead" (first item))
+                            (add-object inventorydb 'bag "Fel Sword")
+                            (printf "Looted from ~a, a Fel Sword been added to your bag.\n" (first item)))
+                           ;; each monster drops a gold coin when killed
+                           ((equal? rnd 1)     
+                            (add-object inventorydb 'bag "Gold Coin")
+                            (printf "Looted from ~a, a Gold Coin been added to your bag.\n" (first item)))
+                           (else
+                            (printf "No loot from this npc \n")))      
+                     (hash-set! db id result))
+                    ((equal? type 3)
+                     (printf "Removed ~a from your bag.\n" (first item))
+                     (add-object objectdb id (first item))
+                     (hash-set! db 'bag result))
+                     ((equal? type 4)
+                     (printf "Removed ~a from your bag.\n" (first item))
+                     (add-object objectdb id (first item))
+                     (hash-set! db 'bag result))))))))
 
-(define (remove-object-from-inventory db id str)
+;; checks the inventory to see if user has specific item to drop or to kill an npc
+(define (inventory_check db id str npc type)
   (when (hash-has-key? db 'bag)
     (let* ((record (hash-ref db 'bag))
            (result (remove (lambda (x) (string-suffix-ci? str x)) record))
            (item (lset-difference equal? record result)))
       (cond ((null? item)
-             (printf "You are not carrying that item!\n"))
+             (printf "you need ~a " str))
             (else
-             (printf "Removed ~a from your bag.\n" (first item))
-             (add-object objectdb id (first item))
-             (hash-set! db 'bag result))))))
+             ;;type 1 for npc, if user has that item they can kill npc
+             (cond ((equal? type 1)
+                    (remove-object-from-room monsterdb id npc 2))
+                   ;; removes an item from bag
+                   ((equal? type 2)
+                    (printf "Removed ~a from your bag.\n" (first item))
+                    (add-object objectdb id (first item))
+                    (hash-set! db 'bag result))
+                   ;;vendor, removes an item and drops Fel sword
+                   ((equal? type 3)
+                    (printf "Removed ~a from your bag.\n" (first item))
+                    (add-object objectdb id "Fel Sword")
+                    (printf "The Vendor dropped a Fel Sword \n")
+                    (hash-set! db 'bag result))))))))
 
-;;Monster Db Functions
-
-
-(define (remove-monster-from-room db id str)
-  (when (hash-has-key? db id)
-    (let* ((record (hash-ref db id))
-           (result (remove (lambda (x) (string-suffix-ci? str x)) record))
-           (npcc (lset-difference equal? record result)))
-      (cond ((null? npcc) 
-             (printf "I don't see that npc in the room!\n"))
-            (else
-             (printf "Added ~a to your bag.\n" (first npcc))
-             (add-object monsterdb 'npc (first npcc))
-             (hash-set! db id result))))))
 
             
 (define (pick-item id input)
   (let ((item (string-join (cdr (string-split input)))))
-    (remove-object-from-room objectdb id item)))
-    
+    (remove-object-from-room objectdb id item 1)))
+
+;; kill monster
 (define (kill-monster id input)
-  (let ((item (string-join (cdr (string-split input)))))
-    (remove-monster-from-room objectdb id item)))
+  (let ((npc (string-join (cdr (string-split input)))))
+    (cond ((equal? "wolf" npc)
+           (inventory_check inventorydb id "Silver Dagger" npc 1))
+          ((equal? "orc" npc)
+           (inventory_check inventorydb id "Silver Sword" npc 1))
+          ((equal? "undead" npc)
+           (inventory_check inventorydb id "Holy Mace" npc 1))
+          ((equal? "gulda" npc)
+           (inventory_check inventorydb id "Fel Sword" npc 1))
+          (else     
+           (remove-object-from-room monsterdb id npc 2)))))
 
 (define (put-item id input)
   (let ((item (string-join (cdr (string-split input)))))
-    (remove-object-from-inventory inventorydb id item)))
+    (inventory_check inventorydb id item 0 2)))
 
+(define (vendor-item id input)
+  (let ((item (string-join (cdr (string-split input)))))
+    (inventory_check inventorydb id "Gold Coin" 0 3)))
+;;displaying kills
 (define (display type)
   (cond ((equal? type 1)
         (display-objects monsterdb 'npc 2))
@@ -202,6 +265,7 @@
   (let ((keys (asso-ref decisiontable id 1)))
     (map (lambda (key) (car key)) keys)))
 
+
 ;; outputs a list in the form: (0 0 0 2 0 0)
 (define (list-of-lengths keylist tokens)
   (map 
@@ -234,8 +298,7 @@
     (when description
       (display-description id)
       (display-objects monsterdb id 2)      
-      (display-objects objectdb id 1)) 
-    
+      (display-objects objectdb id 1))    
     (printf "> ")
     (let* ((input (string-downcase(read-line)))
            (string-tokens (string-tokenize input))
@@ -252,11 +315,14 @@
               ((eq? response 'pick)
                (pick-item id input)
                (loop id #f))
-              ((eq? response 'fight)
-               (kill-monster id input)
+              ((eq? response 'vendor)
+               (vendor-item id input)
                (loop id #f))
               ((eq? response 'drop)
                (put-item id input)
+               (loop id #f))
+               ((eq? response 'fight)
+               (kill-monster id input)
                (loop id #f))
               ((eq? response 'inventory)
                (display 2)
@@ -268,5 +334,5 @@
                (printf "So Long, and Thanks for All the Fish...\n")
                (exit)))))))
 
-
+(add-object inventorydb 'bag "Welcome Token")
 (startgame 1)
