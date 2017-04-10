@@ -189,19 +189,18 @@
                     (lostr (map (lambda (x) (slist->string x)) losym)))
                (printf "You can see exits to the ~a.\n" (string-join lostr " and "))))))))
 
-(define (assq-ref assqlist id)
-  (cdr (assq id assqlist)))
-
-(define (assv-ref assqlist id)
-  (cdr (assv id assqlist)))
+(define (asso-ref assqlist id type)
+  (cond ((equal? type 1)
+         (cdr (assq id assqlist)))
+        ((equal? type 2)
+         (cdr (assv id assqlist)))))
 
 (define (get-description id)
-  (car (assq-ref descriptions id)))
+  (car (asso-ref descriptions id 1)))
 
 (define (get-keywords id)
-  (let ((keys (assq-ref decisiontable id)))
+  (let ((keys (asso-ref decisiontable id 1)))
     (map (lambda (key) (car key)) keys)))
-
 
 ;; outputs a list in the form: (0 0 0 2 0 0)
 (define (list-of-lengths keylist tokens)
@@ -220,7 +219,7 @@
 
 
 (define (lookup id tokens)
-  (let* ((record (assv-ref decisiontable id))
+  (let* ((record (asso-ref decisiontable id 2))
          (keylist (get-keywords id))
          (index (index-of-largest-number (list-of-lengths keylist tokens))))
     (if index 
