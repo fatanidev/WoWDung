@@ -4,7 +4,7 @@
 (require srfi/13)
 ;;############################################################################################
 ;;#######         Defining items that will be accessible throughout the game           #######
-;;#######         Defining items that will be accessible throughout the game           #######
+;;#######                                                                              #######
 ;;#######                                                                              #######
 ;;#######                                                                              #######
 ;;############################################################################################
@@ -23,8 +23,8 @@
                   (5 "worgen")
                   (10 "undead")
                   (8 "murloc")
-                  (12 "gulda")
-                  (4 "orc")))
+                  (4 "orc")
+                  (11 "gulda")))
 
 
 ;; Different areas for the user to explore
@@ -43,11 +43,12 @@
                        ;; Horde camp
                        (9 "############ Now you are at LightShore ############")
                        (10 "############ You are at a Fel Cave ############")
-                       (11 "############ You are at Ragnar Barracks ############")
-                       
-                       ;; final boss
-                       (12 "You are in the Boss Room .")))
+                       (11 "############ You are at Ragnar Barracks ############")))
 
+;;use the for each function to add evert item in the assoc list to the objectdb using
+;; the add-object function.
+;;(first r ) return the index of objects assoc  list  room
+;;second r) returns the item of the objs assoc list room
 (define (make-running-total)
                (let ([n 0])
                  (lambda ()
@@ -75,12 +76,12 @@
                         
                         (6 ((storm city) 2) ((eastfalls camp) 7) ,@actions)
                         (7 ((eastfall) 6) ((riverbank) 8) ,@actions)
-                        (8 ((eastfalls camp) 7) ((light shore) 9) ,@actions)
+                        (8 ((eastfalls camp) 7) ((lightshore) 9) ,@actions)
                         
                         (9 ((riverbank) 8) ((fel cave) 10) ((ragnar barracks) 11) ,@actions)
-                        (10 ((light shore) 9) ,@actions)
-                        (11 ((light shore) 9) ((Boss Room) 12) ,@actions)
-                        (12 ((light shore 9) ,@actions))))
+                        (10 ((lightshore) 9) ,@actions)
+                        (11 ((lightshore) 9) ((boss room) 12) ,@actions)
+                        (12 ((ragnar barracks 11) ,@actions))))
 
 ;; defines the database (hash tables)
 ;; creates the object database
@@ -116,7 +117,6 @@
 (add-objects monsterdb 2)
 
 ;; displaying the objects or monsters, type 1 for items and type 2 for monsters
-
 (define (display-objects db id type)
   (when (hash-has-key? db id)
     (let* ((record (hash-ref db id))
@@ -216,7 +216,6 @@
 (define (vendor-item id input)
   (let ((item (string-join (cdr (string-split input)))))
     (inventory_check inventorydb id "Gold Coin" 0 3)))
-
 ;;displaying kills
 (define (display type)
   (cond ((equal? type 1)
