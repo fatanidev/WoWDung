@@ -310,7 +310,7 @@
                (display 1)
                (loop id #f))
               ((eq? response 'quit)
-               (printf "So Long, and Thanks for All the Fish...\n")
+               (printf "Thank you for playing this game. See you next time!\n")
                (exit)))))))
 
 (add-object inventorydb 'bag "Welcome Token")
