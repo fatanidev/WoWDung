@@ -147,6 +147,9 @@
                      (cond ((equal? "undead" (first item))
                             (add-object inventorydb 'bag "Fel Sword")
                             (printf "Looted from ~a, a Fel Sword been added to your bag.\n" (first item)))
+                           ((equal? "gulda" (first item))                       
+                            (printf "You have killed the last boss, game has ended \n")
+                            (quit))
                            ;; each monster drops a gold coin when killed
                            ((equal? rnd 1)     
                             (add-object inventorydb 'bag "Gold Coin")
